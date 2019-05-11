@@ -8,10 +8,10 @@ class VoteButton extends React.Component {
 
   handleClick(e) {
     if (this.props.name === 'Up') {
-      this.props.upVote(this.props.id, this.props.votes)
+      this.props.upVote(this.props.id, this.props.votes, 1)
     }
     if (this.props.name === 'Down') {
-      this.props.downVote(this.props.id, this.props.votes)
+      this.props.downVote(this.props.id, this.props.votes, -1)
     }
   }
   render() {

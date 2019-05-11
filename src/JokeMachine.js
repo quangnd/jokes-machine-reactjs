@@ -3,23 +3,39 @@ import axios from "axios";
 import VoteButton from "./VoteButton";
 
 class JokeMachine extends React.Component {
+  static defaultProps = {
+    numJokesToGet: 10
+  };
   constructor(props) {
     super(props);
-    this.state = { jokes: [], isLoaded: false };
-    this.handleUpVote = this.handleUpVote.bind(this);
-    this.handleDownVote = this.handleDownVote.bind(this);
+    this.state = { jokes: this.getFromLocalStorage() || [], isLoaded: false };
+    this.seenJokes = new Set(this.state.jokes.map(j => j.joke));
+    this.handleVote = this.handleVote.bind(this);
   }
 
-  async componentDidMount() {
-    if (!localStorage.getItem("jokes")) {
+  componentDidMount() {
+    console.log('in did mount')
+    console.log(this.state.jokes.length)
+    if (this.state.jokes.length === 0) this.getJokes();
+  }
+
+  async getJokes() {
+    try {
+      console.log('in get Jokes')
       const jokeUrl = "https://icanhazdadjoke.com/";
       const axiosConfig = { headers: { Accept: "application/json" } };
       let jokes = [];
-      for (let i = 0; i < 10; i++) {
+
+      while(jokes.length < this.props.numJokesToGet) {
         let response = await axios.get(jokeUrl, axiosConfig);
         let newJokeObj = { ...response.data, votes: 0 };
-        jokes.push(newJokeObj);
+        if (!this.seenJokes.has(response.data.joke)) {
+          jokes.push(newJokeObj);
+        } else {
+          console.log("FOUND A DUPLICATE!");
+        }
       }
+      console.log(jokes)
       this.setState(
         st => ({
           jokes: st.jokes.concat(jokes),
@@ -29,12 +45,9 @@ class JokeMachine extends React.Component {
           this.updateLocalStorage(this.state.jokes);
         }
       );
-    } else {
-      let jokes = this.getFromLocalStorage()
-      this.setState(st => ({
-        jokes: st.jokes.concat(jokes),
-        isLoaded: !st.isLoaded
-      }));
+    } catch (e) {
+      alert(e);
+      this.setState({ isLoaded: true });
     }
   }
 
@@ -46,22 +59,10 @@ class JokeMachine extends React.Component {
     return JSON.parse(localStorage.getItem("jokes"));
   }
 
-  handleDownVote(id, votes) {
+  handleVote(id, votes, delta) {
     let updatedList = this.state.jokes.map(joke => {
       if (joke.id === id) {
-        return { ...joke, votes: --votes };
-      }
-      return joke;
-    });
-    this.setState({ jokes: updatedList }, () =>
-      this.updateLocalStorage(this.state.jokes)
-    );
-  }
-
-  handleUpVote(id, votes) {
-    let updatedList = this.state.jokes.map(joke => {
-      if (joke.id === id) {
-        return { ...joke, votes: ++votes };
+        return { ...joke, votes: votes + delta };
       }
       return joke;
     });
@@ -91,10 +92,7 @@ class JokeMachine extends React.Component {
     return feeling;
   }
   sortDesc(jokes) {
-    return jokes.sort((a, b) => {
-      if (a.votes > b.votes) return -1;
-      return 1;
-    });
+    return jokes.sort((a, b) => b.votes - a.votes);
   }
   render() {
     let trTables = [];
@@ -107,14 +105,14 @@ class JokeMachine extends React.Component {
               name="Up"
               id={joke.id}
               votes={joke.votes}
-              upVote={this.handleUpVote}
+              upVote={this.handleVote}
             />
             {joke.votes}
             <VoteButton
               name="Down"
               id={joke.id}
               votes={joke.votes}
-              downVote={this.handleDownVote}
+              downVote={this.handleVote}
             />
           </td>
           <td>{joke.joke}</td>
