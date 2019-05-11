@@ -11,18 +11,39 @@ class JokeMachine extends React.Component {
   }
 
   async componentDidMount() {
-    const jokeUrl = "https://icanhazdadjoke.com/";
-    const axiosConfig = { headers: { Accept: "application/json" } };
-    let jokes = [];
-    for (let i = 0; i < 10; i++) {
-      let response = await axios.get(jokeUrl, axiosConfig);
-      let newJokeObj = { ...response.data, votes: 0 };
-      jokes.push(newJokeObj);
+    if (!localStorage.getItem("jokes")) {
+      const jokeUrl = "https://icanhazdadjoke.com/";
+      const axiosConfig = { headers: { Accept: "application/json" } };
+      let jokes = [];
+      for (let i = 0; i < 10; i++) {
+        let response = await axios.get(jokeUrl, axiosConfig);
+        let newJokeObj = { ...response.data, votes: 0 };
+        jokes.push(newJokeObj);
+      }
+      this.setState(
+        st => ({
+          jokes: st.jokes.concat(jokes),
+          isLoaded: !st.isLoaded
+        }),
+        () => {
+          this.updateLocalStorage(this.state.jokes);
+        }
+      );
+    } else {
+      let jokes = this.getFromLocalStorage()
+      this.setState(st => ({
+        jokes: st.jokes.concat(jokes),
+        isLoaded: !st.isLoaded
+      }));
     }
-    this.setState(st => ({
-      jokes: st.jokes.concat(jokes),
-      isLoaded: !st.isLoaded
-    }));
+  }
+
+  updateLocalStorage(jokes) {
+    localStorage.setItem("jokes", JSON.stringify(jokes));
+  }
+
+  getFromLocalStorage() {
+    return JSON.parse(localStorage.getItem("jokes"));
   }
 
   handleDownVote(id, votes) {
@@ -32,7 +53,9 @@ class JokeMachine extends React.Component {
       }
       return joke;
     });
-    this.setState({ jokes: updatedList });
+    this.setState({ jokes: updatedList }, () =>
+      this.updateLocalStorage(this.state.jokes)
+    );
   }
 
   handleUpVote(id, votes) {
@@ -42,7 +65,9 @@ class JokeMachine extends React.Component {
       }
       return joke;
     });
-    this.setState({ jokes: updatedList });
+    this.setState({ jokes: updatedList }, () =>
+      this.updateLocalStorage(this.state.jokes)
+    );
   }
 
   getFeeling(e) {
