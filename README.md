@@ -7,3 +7,4 @@
 - Show feeling based on voted jokes.
 - Sort joke list based on amount of votes.
 - Save to localstorage.
+- Load more jokes.
