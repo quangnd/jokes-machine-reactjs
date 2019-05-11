@@ -130,6 +130,17 @@ class JokeMachine extends React.Component {
     return (
       <div className="JokeMachine">
         <h1>🤣Jokes Machine 🤣</h1>
+        <p className="JokeMachine-author">
+          Made by{" "}
+          <a
+            href="https://github.com/quangnd/jokes-machine-reactjs"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Mun
+          </a>{" "}
+          with ❤️
+        </p>
         <h3>
           <button
             className={
