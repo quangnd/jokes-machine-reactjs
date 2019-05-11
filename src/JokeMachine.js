@@ -1,6 +1,8 @@
 import React from "react";
 import axios from "axios";
+import uuid from "uuid/v4";
 import VoteButton from "./VoteButton";
+import "./JokeMachine.css";
 
 class JokeMachine extends React.Component {
   static defaultProps = {
@@ -30,7 +32,7 @@ class JokeMachine extends React.Component {
 
       while (jokes.length < this.props.numJokesToGet) {
         let response = await axios.get(jokeUrl, axiosConfig);
-        let newJokeObj = { ...response.data, votes: 0 };
+        let newJokeObj = { id: uuid(), joke: response.data.joke, votes: 0 };
         if (!this.seenJokes.has(response.data.joke)) {
           jokes.push(newJokeObj);
         }
@@ -58,44 +60,44 @@ class JokeMachine extends React.Component {
     return JSON.parse(localStorage.getItem("jokes"));
   }
 
+  getFeeling(e) {
+    let votes = e.votes;
+    let feeling = "normal 😃";
+    if (votes < 0) {
+      feeling = "bad 😔";
+    }
+    if (votes < -3) {
+      feeling = "very bad 😣";
+    }
+    if (votes < -8) {
+      feeling = "terrible 😖";
+    }
+    if (votes === 0) {
+      feeling = "normal 😃";
+    }
+    if (votes > 3) {
+      feeling = "good 😆";
+    }
+    if (votes > 6) {
+      feeling = "excellent 🤣";
+    }
+    return feeling;
+  }
+
   handleClick() {
     this.setState({ isLoaded: false }, this.getJokes);
   }
 
   handleVote(id, votes, delta) {
     let updatedList = this.state.jokes.map(joke => {
-      return joke.id === id ? { ...joke, votes: votes + delta } : joke
+      return joke.id === id ? { ...joke, votes: votes + delta } : joke;
     });
     this.setState({ jokes: updatedList }, () =>
       this.updateLocalStorage(this.state.jokes)
     );
   }
 
-  getFeeling(e) {
-    let votes = e.votes;
-    let feeling = "neutral";
-    if (votes < 0) {
-      feeling = "bad";
-    }
-    if (votes < -3) {
-      feeling = "very bad";
-    }
-    if (votes < -8) {
-      feeling = "terrible";
-    }
-    if (votes === 0) {
-      feeling = "neutral";
-    }
-    if (votes > 3) {
-      feeling = "good";
-    }
-    if (votes > 6) {
-      feeling = "excellent";
-    }
-    return feeling;
-  }
-
-  render() {
+  renderJoke() {
     let trTables = [];
     let jokes = this.state.jokes.sort((a, b) => b.votes - a.votes);
     trTables = jokes.map(joke => (
@@ -107,7 +109,7 @@ class JokeMachine extends React.Component {
             votes={joke.votes}
             upVote={this.handleVote}
           />
-          {joke.votes}
+          <span className="JokeMachine-joke">{joke.votes}</span>
           <VoteButton
             name="Down"
             id={joke.id}
@@ -116,21 +118,31 @@ class JokeMachine extends React.Component {
           />
         </td>
         <td>{joke.joke}</td>
-        <td>{this.getFeeling(joke)}</td>
+        <td>
+          <span className="JokeMachine-feeling">{this.getFeeling(joke)}</span>
+        </td>
       </tr>
     ));
 
+    return trTables;
+  }
+  render() {
     return (
       <div className="JokeMachine">
         <h1>🤣Jokes Machine 🤣</h1>
         <h3>
-          <button onClick={this.handleClick}>New Jokes</button>
+          <button className="JokeMachine-button" onClick={this.handleClick}>
+            Generate Jokes
+          </button>
         </h3>
         {this.state.isLoaded ? (
           <div>
             <p>Total jokes: {this.state.jokes.length} </p>
-            <table border="1">
-              <tbody>{trTables}</tbody>
+            <table
+              border="1"
+              style={{ marginLeft: "auto", marginRight: "auto" }}
+            >
+              <tbody>{this.renderJoke()}</tbody>
             </table>
           </div>
         ) : (
