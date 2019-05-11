@@ -131,7 +131,15 @@ class JokeMachine extends React.Component {
       <div className="JokeMachine">
         <h1>🤣Jokes Machine 🤣</h1>
         <h3>
-          <button className="JokeMachine-button" onClick={this.handleClick}>
+          <button
+            className={
+              this.state.isLoaded
+                ? "JokeMachine-button"
+                : "JokeMachine-button-disable"
+            }
+            onClick={this.handleClick}
+            disabled={!this.state.isLoaded}
+          >
             Generate Jokes
           </button>
         </h3>

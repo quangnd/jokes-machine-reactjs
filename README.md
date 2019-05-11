@@ -6,7 +6,7 @@
 - [x] Up/Down vote.
 - [x] Show feeling based on voted jokes.
 - [x] Sort joke list based on amount of votes.
-- [x] Save to localstorage.
+- [x] Save/Load to localstorage.
 - [x] Load more jokes.
 - [ ] Styling app.
 
